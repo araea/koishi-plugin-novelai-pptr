@@ -7,7 +7,16 @@ import StealthPlugin from "puppeteer-extra-plugin-stealth";
 export const name = 'novelai-pptr'
 export const logger = new Logger('NovelAI')
 export const reusable = true
-export const usage = ``
+export const usage = `## 🎮 使用
+
+- 建议为指令添加指令别名。
+- 你需要填写你的 NovelAI 账号邮箱和密码，才能使用图像生成功能。
+- 请自备科学上网工具，确保你能正常使用 [NovelAI](https://novelai.net/) 的图像生成功能。
+
+## 📝 指令说明
+
+- \`novelai\`：查看插件的指令帮助信息。
+- \`novelai.draw <prompt:text>\`：根据文本提示生成图像，并发送给你。你可以输入任何你想要的内容，比如 \`novelai.draw 1girl,cat girl\`。`
 
 export interface Config {
   email
