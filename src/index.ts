@@ -88,24 +88,18 @@ async function run(ctx, email, password) {
 
   await page.goto('https://novelai.net/image');
 
-  // 等待登录元素出现
   await page.waitForSelector('.sc-7c920e4a-7.dOivMA');
 
-  // 输入用户名
   await page.click('#username');
   await page.type('#username', `${email}`);
 
-  // 输入密码
   await page.click('#password');
   await page.type('#password', `${password}`);
 
-  // 点击登录按钮
   await page.click('.sc-7c920e4a-11.bRqMMu');
 
-  // 等待按钮元素出现
   await page.waitForSelector('button[href="/image"]');
 
-  // 模拟点击按钮
   await page.click('button[href="/image"]');
 
   await page.waitForSelector('button.sc-d72450af-0.sc-d72450af-4.ktCSKn.lbyRBz.button');

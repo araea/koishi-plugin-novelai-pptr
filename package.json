@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-novelai-pptr",
-  "description": "需要订阅账号，nai3 绘图。",
-  "version": "0.0.2",
+  "description": "需要订阅账号，[NovelAI](https://novelai.net/image) 的 nai3 绘图。",
+  "version": "0.0.3",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
