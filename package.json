@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-novelai-pptr",
-  "description": "",
-  "version": "0.0.1",
+  "description": "需要订阅账号，nai3 绘图。",
+  "version": "0.0.2",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
@@ -9,13 +9,27 @@
     "dist"
   ],
   "license": "MIT",
-  "scripts": {},
+  "author": "Nawyjx <3373167460@qq.com>",
+  "homepage": "https://www.npmjs.com/package/koishi-plugin-novelai-pptr?activeTab=readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/araea/koishi-plugin-novelai-pptr.git"
+  },
   "keywords": [
     "chatbot",
     "koishi",
-    "plugin"
+    "plugin",
+    "draw",
+    "ai",
+    "novelai",
+    "nai3",
+    "image"
   ],
   "peerDependencies": {
     "koishi": "^4.16.2"
+  },
+  "dependencies": {
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
   }
 }
