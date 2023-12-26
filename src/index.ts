@@ -283,6 +283,8 @@ export async function apply(ctx: Context, config: Config) {
         return button && !button.disabled; // 检查按钮是否存在且不被禁用
       });
 
+      await page.waitForTimeout(1000); // 等待 1 秒钟
+
       const imageElement = await page.$('div.sc-5db1afd3-25.lgGyrb img');
       const imageSrc = await imageElement?.evaluate((elem: HTMLImageElement) => elem.src);
 
@@ -311,6 +313,7 @@ export async function apply(ctx: Context, config: Config) {
 async function run(email, password) {
   const browser = await puppeteer.launch({
     executablePath,
+    timeout: 120000,
     headless: 'new'
     // headless: false
   });
