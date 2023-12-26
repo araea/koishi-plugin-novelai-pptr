@@ -91,10 +91,18 @@ export async function apply(ctx: Context, config: Config) {
     await session.send('嗯~');
     isDrawing = true
 
-    await page.waitForSelector('textarea.sc-5db1afd3-45.fnzOi');
-    await page.$eval('textarea.sc-5db1afd3-45.fnzOi', (textarea) => {
-      textarea.value = '';
-    });
+    await page.waitForSelector('textarea.sc-5db1afd3-45');
+
+    const inputBox = await page.$('textarea.sc-5db1afd3-45');
+
+    await inputBox.click();
+
+    await page.keyboard.down('Control');
+    await page.keyboard.press('a');
+    await page.keyboard.up('Control');
+
+    await page.keyboard.press('Backspace');
+
     await page.waitForSelector('button.sc-d72450af-0.sc-d72450af-4.sc-5ef2c1dc-36.ktCSKn.lbyRBz.jhAyYg');
 
     await page.click('button.sc-d72450af-0.sc-d72450af-4.sc-5ef2c1dc-36.ktCSKn.lbyRBz.jhAyYg');
@@ -124,11 +132,19 @@ export async function apply(ctx: Context, config: Config) {
 
   ctx.command('novelai.switchSampler <sampler:text>', '切换采样器')
     .action(async ({ session }, sampler) => {
-      if (!sampler) {
-        return '大笨蛋~';
-      }
       if (isDrawing) {
         return '等一下啦~';
+      }
+      if (!sampler) {
+        await session.execute(`novelai.samplerList`)
+        await session.send('请输入你想要切换的采样器全名或相应的数字ID：')
+        sampler = await session.prompt()
+        if (!sampler) return '输入超时。'
+      }
+      // 检测输入是否是数字ID
+      const samplerFromID = getSamplerFromID(sampler);
+      if (samplerFromID) {
+        sampler = samplerFromID;
       }
       await session.send('嗯~');
       isDrawing = true;
@@ -175,11 +191,19 @@ export async function apply(ctx: Context, config: Config) {
 
   ctx.command('novelai.switchSize <size:text>', '切换尺寸')
     .action(async ({ session }, size) => {
-      if (!size) {
-        return '大笨蛋~';
-      }
       if (isDrawing) {
         return '等一下啦~';
+      }
+      if (!size) {
+        await session.execute(`novelai.sizeList`)
+        await session.send('请输入你想要切换的尺寸全名或相应的数字ID：')
+        size = await session.prompt()
+        if (!size) return '输入超时。'
+      }
+      // 检测输入是否是数字ID
+      const sizeFromID = getSizeFromID(size);
+      if (sizeFromID) {
+        size = sizeFromID;
       }
       await session.send('嗯~');
       isDrawing = true;
@@ -229,10 +253,17 @@ export async function apply(ctx: Context, config: Config) {
       }
       await session.send('嗯~');
       isDrawing = true
-      await page.waitForSelector('textarea.sc-5db1afd3-45.fnzOi');
-      await page.$eval('textarea.sc-5db1afd3-45.fnzOi', (textarea) => {
-        textarea.value = ''; // 清空文本区域内容
-      });
+      await page.waitForSelector('textarea.sc-5db1afd3-45');
+
+      const inputBox = await page.$('textarea.sc-5db1afd3-45');
+
+      await inputBox.click();
+
+      await page.keyboard.down('Control');
+      await page.keyboard.press('a');
+      await page.keyboard.up('Control');
+
+      await page.keyboard.press('Backspace');
       await page.type('textarea.sc-5db1afd3-45.fnzOi', prompt);
 
       if (options.undesired) {
@@ -264,9 +295,11 @@ export async function apply(ctx: Context, config: Config) {
 
         await session.send(h.image(imageBuffer, 'image/png'));
         if (isSendSpecificContent) {
-          await session.send(`Prompt: ${prompt}
-Sampler: ${currentSampler}
-Size: ${currentSize}`);
+          await session.send(`*Prompt: ${prompt}
+
+*Sampler: ${currentSampler}
+
+*Size: ${currentSize}`);
         }
         await imagePage.close(); // 关闭处理图像的页面
       }
@@ -307,3 +340,19 @@ async function run(email, password) {
 }
 
 
+
+function getSamplerFromID(samplerID: string): string | undefined {
+  const index = parseInt(samplerID);
+  if (index >= 1 && index <= samplers.length) {
+    return samplers[index - 1];
+  }
+  return undefined;
+}
+
+function getSizeFromID(sizeID: string): string | undefined {
+  const index = parseInt(sizeID);
+  if (index >= 1 && index <= sizes.length) {
+    return sizes[index - 1];
+  }
+  return undefined;
+}
