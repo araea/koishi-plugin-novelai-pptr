@@ -20,7 +20,7 @@
 - 你需要填写你的 NovelAI 账号邮箱和密码，才能使用图像生成功能。
 - 请自备科学上网工具，确保你能正常使用 [NovelAI](https://novelai.net/) 的图像生成功能。
 - 全局同步，即所有群同步绘图进度，如需分群多开，可以多次添加本插件配置，并为相应的群聊设置单独的过滤器，参考链接：[维护多份配置](https://koishi.chat/zh-CN/manual/recipe/multiple.html#%E5%A4%9A%E5%AE%9E%E4%BE%8B)。
-- 无限小图共享号购买推荐：[【25刀版本】NovelAI 共享号【无限制作小图】](https://item.taobao.com/item.htm?spm=a1z09.2.0.0.46f92e8dNv8id9&id=756695352688&_u=q20ehc81to6152)。
+- 无限小图共享号购买推荐（店铺与本人无关）：[【25刀版本】NovelAI 共享号【无限制作小图】](https://item.taobao.com/item.htm?spm=a1z09.2.0.0.46f92e8dNv8id9&id=756695352688&_u=q20ehc81to6152)。
 
 ## 📝 指令说明
 
