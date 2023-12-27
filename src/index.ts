@@ -1,4 +1,4 @@
-import { Context, Schema, Logger, h } from 'koishi'
+import { Context, Schema, Logger, h, sleep } from 'koishi'
 
 import find from 'puppeteer-finder';
 import puppeteer from "puppeteer-extra";
@@ -28,12 +28,14 @@ export const usage = `## 🎮 使用
     - 当希望传入带空格的参数时 (默认行为是只解析空格前面的部分)`
 
 export interface Config {
+  headless
   email
   password
   isSendSpecificContent
 }
 
 export const Config: Schema<Config> = Schema.object({
+  headless: Schema.union(['true', 'false', 'new']).default('new').description('是否以无头模式运行浏览器。'),
   email: Schema.string().description('账号邮箱。'),
   password: Schema.string().role('secret').default('password').description('登录密码。'),
   isSendSpecificContent: Schema.boolean().default(true).description('是否发送详情信息（采样器、提示词、尺寸），若关闭，则仅发送图片。'),
@@ -41,7 +43,7 @@ export const Config: Schema<Config> = Schema.object({
 
 const executablePath = find();
 puppeteer.use(StealthPlugin())
-var isDrawing: boolean
+var isDrawing: boolean = false
 var samplerButton = 'Euler'
 
 var currentSize: string = 'Portrait (832x1216)'
@@ -62,9 +64,9 @@ const sizes: string[] = [
 ];
 
 export async function apply(ctx: Context, config: Config) {
-  const { email, password, isSendSpecificContent } = config
+  const { email, password, isSendSpecificContent, headless } = config
   logger.info('正在初始化中.......')
-  const { browser, page } = await run(email, password)
+  const { browser, page } = await run(headless, email, password)
   logger.info('初始化成功！')
   ctx.on('dispose', async () => {
     await browser.close();
@@ -253,7 +255,7 @@ export async function apply(ctx: Context, config: Config) {
       }
       await session.send('嗯~');
       isDrawing = true
-      await page.waitForSelector('textarea.sc-5db1afd3-45');
+      await page.waitForSelector('textarea.sc-5db1afd3-45', { timeout: 60000 });
 
       const inputBox = await page.$('textarea.sc-5db1afd3-45');
 
@@ -275,15 +277,15 @@ export async function apply(ctx: Context, config: Config) {
 
         await textarea.type(`${options.undesired}`);
       }
-      await page.waitForSelector('button.sc-d72450af-1.sc-5ef2c1dc-20.kXFbYD');
+      await page.waitForSelector('button.sc-d72450af-1.sc-5ef2c1dc-20.kXFbYD', { timeout: 60000 });
       await page.click('button.sc-d72450af-1.sc-5ef2c1dc-20.kXFbYD');
 
       await page.waitForFunction(() => {
         const button = document.querySelector('button.sc-d72450af-1.sc-5ef2c1dc-20.kXFbYD') as any;
         return button && !button.disabled; // 检查按钮是否存在且不被禁用
-      });
+      }, { timeout: 120000 }); // 设置超时时间为 2 分钟（120000 毫秒）
 
-      await page.waitForTimeout(1000); // 等待 1 秒钟
+      await page.waitForTimeout(2000); // 等待 2 秒钟
 
       const imageElement = await page.$('div.sc-5db1afd3-25.lgGyrb img');
       const imageSrc = await imageElement?.evaluate((elem: HTMLImageElement) => elem.src);
@@ -305,20 +307,28 @@ export async function apply(ctx: Context, config: Config) {
         }
         await imagePage.close(); // 关闭处理图像的页面
       }
+      sleep(2000)
       isDrawing = false
     });
 }
 
 
-async function run(email, password) {
+async function run(headless, email, password) {
   const browser = await puppeteer.launch({
     executablePath,
-    timeout: 120000,
-    headless: 'new'
+    timeout: 0,
+    headless: headless === 'true' ? true : headless === 'false' ? false : 'new',
+    protocolTimeout: 300000,
     // headless: false
   });
 
   const page = await browser.newPage();
+
+  // 设置默认的导航超时时间为0（永不超时）
+  await page.setDefaultNavigationTimeout(0);
+
+  // 设置默认的等待超时时间为0（永不超时）
+  await page.setDefaultTimeout(0);
 
   await page.goto('https://novelai.net/image');
 
