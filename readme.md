@@ -26,6 +26,7 @@
 
 - `novelai`：查看插件的指令帮助信息。
 - `novelai.randomPrompt`：随机获取一组提示词。
+- `novelai.reload`：重载页面。
 - `novelai.samplerList`：查看可选的采样器列表。
 - `novelai.switchSampler <sampler:text>`：切换采样器，比如 `novelai.switchSampler DPM++ 2S Ancestral`。
 - `novelai.sizeList`：查看可选的尺寸列表。

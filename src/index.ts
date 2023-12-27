@@ -18,6 +18,7 @@ export const usage = `## 🎮 使用
 ## 📝 指令说明
 
 - \`novelai\`：查看插件的指令帮助信息。
+- \`novelai.reload\`：重载页面。
 - \`novelai.randomPrompt\`：随机获取一组提示词。
 - \`novelai.samplerList\`：查看可选的采样器列表。
 - \`novelai.switchSampler <sampler:text>\`：切换采样器，比如 \`novelai.switchSampler DPM++ 2S Ancestral\`。
@@ -310,6 +311,18 @@ export async function apply(ctx: Context, config: Config) {
       sleep(2000)
       isDrawing = false
     });
+
+  ctx.command('novelai.reload', '重载页面').action(async ({ session }) => {
+    isDrawing = true;
+    await session.send('嗯~');
+    await page.reload()
+    await page.waitForSelector('button.sc-d72450af-0.sc-d72450af-4.ktCSKn.lbyRBz.button');
+    await page.click('button.sc-d72450af-0.sc-d72450af-4.ktCSKn.lbyRBz.button');
+    await session.send('好啦~');
+    currentSampler = 'Euler'
+    currentSize = 'Portrait (832x1216)'
+    isDrawing = false;
+  });
 }
 
 
@@ -317,8 +330,8 @@ async function run(headless, email, password) {
   const browser = await puppeteer.launch({
     executablePath,
     timeout: 0,
-    headless: headless === 'true' ? true : headless === 'false' ? false : 'new',
     protocolTimeout: 300000,
+    headless: headless === 'true' ? true : headless === 'false' ? false : 'new',
     // headless: false
   });
 
