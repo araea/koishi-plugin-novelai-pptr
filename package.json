@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-novelai-pptr",
   "description": "需要订阅账号，[NovelAI](https://novelai.net/image) 的 nai3 绘图。[NovelAI 无限小图共享号购买推荐](https://item.taobao.com/item.htm?spm=a1z09.2.0.0.46f92e8dNv8id9&id=756695352688&_u=q20ehc81to6152)，店铺与本人无关。",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [

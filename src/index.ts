@@ -1,5 +1,6 @@
 import { Context, Schema, Logger, h, sleep } from 'koishi'
 
+import fs from 'fs';
 import find from 'puppeteer-finder';
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
@@ -49,6 +50,7 @@ var samplerButton = 'Euler'
 
 var currentSize: string = 'Portrait (832x1216)'
 var currentSampler: string = 'Euler'
+var sizeElement = 'Normal Portrait'
 
 const samplers: string[] = [
   "Euler",
@@ -125,12 +127,12 @@ export async function apply(ctx: Context, config: Config) {
 
 
   const samplers2: { [key: string]: string[] } = {
-    "Euler": ["#react-select-5-option-0-0", "#react-select-7-option-0-0"],
-    "Euler Ancestral": ["#react-select-5-option-0-1", "#react-select-7-option-0-1"],
-    "DPM++ 2S Ancestral": ["#react-select-5-option-0-2", "#react-select-7-option-0-2"],
-    "DPM++ 2M": ["#react-select-5-option-1-0", "#react-select-7-option-1-0"],
-    "DPM++ SDE": ["#react-select-5-option-1-1", "#react-select-7-option-1-1"],
-    "DDIM": ["#react-select-5-option-1-2", "#react-select-7-option-1-2"]
+    "Euler": ["#react-select-5-option-0-0", "#react-select-4-option-0-0"],
+    "Euler Ancestral": ["#react-select-5-option-0-1", "#react-select-4-option-0-1"],
+    "DPM++ 2S Ancestral": ["#react-select-5-option-0-2", "#react-select-4-option-0-2"],
+    "DPM++ 2M": ["#react-select-5-option-1-0", "#react-select-4-option-1-0"],
+    "DPM++ SDE": ["#react-select-5-option-1-1", "#react-select-4-option-1-1"],
+    "DDIM": ["#react-select-5-option-1-2", "#react-select-4-option-1-2"]
   };
 
   ctx.command('novelai.switchSampler <sampler:text>', '切换采样器')
@@ -164,22 +166,15 @@ export async function apply(ctx: Context, config: Config) {
         isDrawing = false;
         return;
       }
+      const element = await page.$x(`//div[contains(text(), "${sampler}")]`);
 
-      let clicked = false;
-      for (const samplerId of samplerIds) {
-        const element = await page.$(samplerId);
-        if (element) {
-          await element.click();
-          clicked = true;
-          break;
-        }
-      }
-
-      if (!clicked) {
-        await session.send('找不到匹配的元素');
+      if (element.length === 0) {
+        await session.send('找不到采样器元素');
         isDrawing = false;
         return;
       }
+
+      await element[0].click();
 
       await session.send('好啦~');
       samplerButton = sampler
@@ -187,9 +182,9 @@ export async function apply(ctx: Context, config: Config) {
       isDrawing = false;
     });
   const sizes2: { [key: string]: string[] } = {
-    "Portrait (832x1216)": ["#react-select-4-option-0-0"],
-    "Landscape (1216x832)": ["#react-select-4-option-0-1"],
-    "Square (1024x1024)": ["#react-select-4-option-0-2"]
+    "Portrait (832x1216)": ["#react-select-3-option-0-0"],
+    "Landscape (1216x832)": ["#react-select-3-option-0-1"],
+    "Square (1024x1024)": ["#react-select-3-option-0-2"]
   };
 
   ctx.command('novelai.switchSize <size:text>', '切换尺寸')
@@ -208,13 +203,10 @@ export async function apply(ctx: Context, config: Config) {
       if (sizeFromID) {
         size = sizeFromID;
       }
+
       await session.send('嗯~');
       isDrawing = true;
       await page.waitForSelector('.css-4t5j3y-singleValue');
-
-      const elements = await page.$$('.css-4t5j3y-singleValue');
-
-      await elements[1].click();
 
       const sizeIds = sizes2[size];
       if (!sizeIds || sizeIds.length === 0) {
@@ -223,25 +215,38 @@ export async function apply(ctx: Context, config: Config) {
         isDrawing = false;
         return;
       }
-
-      let clicked = false;
-      for (const sizeId of sizeIds) {
-        const element = await page.$(sizeId);
-        if (element) {
-          await element.click();
-          clicked = true;
-          break;
-        }
-      }
-
-      if (!clicked) {
-        await session.send('找不到匹配的元素');
+      const element = await page.$x(`//div[contains(text(), "${sizeElement}")]`);
+      if (element.length === 0) {
+        await session.send('找不到尺寸元素');
         isDrawing = false;
         return;
       }
 
-      currentSize = size
+      await element[0].click();
+
+      const element2 = await page.$x(`//div[contains(text(), "${size}")]`);
+
+      if (element2.length === 0) {
+        await session.send('找不到尺寸元素');
+        isDrawing = false;
+        return;
+      }
+
+      await element2[0].click();
+
+      currentSize = size;
       await session.send('好啦~');
+      switch (size) {
+        case 'Portrait (832x1216)':
+          sizeElement = 'Normal Portrait';
+          break;
+        case 'Landscape (1216x832)':
+          sizeElement = 'Normal Landscape';
+          break;
+        case 'Square (1024x1024)':
+          sizeElement = 'Normal Square';
+          break;
+      }
       isDrawing = false;
     });
 
@@ -267,7 +272,7 @@ export async function apply(ctx: Context, config: Config) {
       await page.keyboard.up('Control');
 
       await page.keyboard.press('Backspace');
-      await page.type('textarea.sc-5db1afd3-45.fnzOi', prompt);
+      await page.type('textarea.sc-5db1afd3-45.fnzOi', prompt, { delay: 0 });
 
       if (options.undesired) {
         const textareas = await page.$$('textarea.sc-5db1afd3-45');
@@ -316,6 +321,9 @@ export async function apply(ctx: Context, config: Config) {
     isDrawing = true;
     await session.send('嗯~');
     await page.reload()
+    await page.on('dialog', async (dialog: any) => {
+      await dialog.accept();
+    });
     await page.waitForSelector('button.sc-d72450af-0.sc-d72450af-4.ktCSKn.lbyRBz.button');
     await page.click('button.sc-d72450af-0.sc-d72450af-4.ktCSKn.lbyRBz.button');
     await session.send('好啦~');
@@ -332,39 +340,86 @@ async function run(headless, email, password) {
     timeout: 0,
     protocolTimeout: 300000,
     headless: headless === 'true' ? true : headless === 'false' ? false : 'new',
-    // headless: false
   });
 
   const page = await browser.newPage();
 
-  // 设置默认的导航超时时间为0（永不超时）
   await page.setDefaultNavigationTimeout(0);
-
-  // 设置默认的等待超时时间为0（永不超时）
   await page.setDefaultTimeout(0);
 
-  await page.goto('https://novelai.net/image');
+  const filePath = 'localStorageData.json';
 
-  await page.waitForSelector('.sc-7c920e4a-7.dOivMA');
+  const checkLocalStorage = async () => {
+    try {
+      await fs.promises.access(filePath, fs.constants.F_OK);
+      return true;
+    } catch (err) {
+      return false;
+    }
+  };
 
-  await page.click('#username');
-  await page.type('#username', `${email}`);
+  const saveLocalStorage = async () => {
+    const localStorage = await page.evaluate(() => {
+      const data = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        data[key] = localStorage.getItem(key);
+      }
+      return data;
+    });
 
-  await page.click('#password');
-  await page.type('#password', `${password}`);
+    const localStorageJSON = JSON.stringify(localStorage);
+    await fs.promises.writeFile(filePath, localStorageJSON, 'utf8');
+  };
 
-  await page.click('.sc-7c920e4a-11.bRqMMu');
+  const loadLocalStorage = async () => {
+    const localStorageJSON = await fs.promises.readFile(filePath, 'utf8');
+    const localStorage = JSON.parse(localStorageJSON);
 
-  await page.waitForSelector('button[href="/image"]');
+    await page.evaluateOnNewDocument(() => localStorage.clear());
 
-  await page.click('button[href="/image"]');
+    for (let key in localStorage) {
+      await page.evaluateOnNewDocument((key, value) => {
+        localStorage.setItem(key, value);
+      }, key, localStorage[key]);
+    }
+  };
 
-  await page.waitForSelector('button.sc-d72450af-0.sc-d72450af-4.ktCSKn.lbyRBz.button');
-  await page.click('button.sc-d72450af-0.sc-d72450af-4.ktCSKn.lbyRBz.button');
+  const login = async () => {
+    await page.goto('https://novelai.net/image');
+    await page.waitForSelector('.sc-7c920e4a-7.dOivMA');
 
-  return { browser, page }
+    await page.click('#username');
+    await page.type('#username', email, { delay: 0 });
+
+    await page.click('#password');
+    await page.type('#password', password, { delay: 0 });
+
+    await page.click('.sc-7c920e4a-11.bRqMMu');
+    await page.waitForSelector('button[href="/image"]');
+    await page.click('button[href="/image"]');
+    await page.waitForSelector('button.sc-d72450af-0.sc-d72450af-4.ktCSKn.lbyRBz.button');
+    await page.click('button.sc-d72450af-0.sc-d72450af-4.ktCSKn.lbyRBz.button');
+  };
+
+  const runPage = async () => {
+    await page.goto('https://novelai.net/image');
+    await page.waitForSelector('button.sc-d72450af-0.sc-d72450af-4.ktCSKn.lbyRBz.button');
+    await page.click('button.sc-d72450af-0.sc-d72450af-4.ktCSKn.lbyRBz.button');
+  };
+
+  const isLocalStorageAvailable = await checkLocalStorage();
+
+  if (isLocalStorageAvailable) {
+    await loadLocalStorage();
+    await runPage();
+  } else {
+    await login();
+    await saveLocalStorage();
+  }
+
+  return { browser, page };
 }
-
 
 
 function getSamplerFromID(samplerID: string): string | undefined {
