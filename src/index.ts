@@ -10,6 +10,7 @@ export const logger = new Logger('NovelAI')
 export const reusable = true
 export const usage = `## 🎮 使用
 
+- 换号或者登录授权令牌失效请在 Koishi 默认的本地目录删除文件"localStorageData.json"并重新登录。
 - 建议为指令添加指令别名。
 - 你需要填写你的 NovelAI 账号邮箱和密码，才能使用图像生成功能。
 - 请自备科学上网工具，确保你能正常使用 [NovelAI](https://novelai.net/) 的图像生成功能。
@@ -282,7 +283,14 @@ export async function apply(ctx: Context, config: Config) {
         await textarea.press('Backspace'); // 删除选中文本
 
         await textarea.type(`${options.undesired}`);
+      } else {
+        const textareas = await page.$$('textarea.sc-5db1afd3-45');
+        const textarea = textareas[1];
+
+        await textarea.click({ clickCount: 3 }); // 选中全部文本
+        await textarea.press('Backspace'); // 删除选中文本
       }
+
       await page.waitForSelector('button.sc-d72450af-1.sc-5ef2c1dc-20.kXFbYD', { timeout: 60000 });
       await page.click('button.sc-d72450af-1.sc-5ef2c1dc-20.kXFbYD');
 
