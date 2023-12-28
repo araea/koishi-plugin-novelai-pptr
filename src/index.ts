@@ -329,12 +329,15 @@ export async function apply(ctx: Context, config: Config) {
     isDrawing = true;
     await session.send('嗯~');
     await page.reload()
-    await page.on('dialog', async (dialog: any) => {
-      await dialog.accept();
-    });
+
     await page.waitForSelector('button.sc-d72450af-0.sc-d72450af-4.ktCSKn.lbyRBz.button');
     await page.click('button.sc-d72450af-0.sc-d72450af-4.ktCSKn.lbyRBz.button');
     await session.send('好啦~');
+    // 注销对话框事件监听器
+    page.off('dialog');
+
+    // 第二次注册对话框事件监听器
+    await registerDialogListener(page);
     currentSampler = 'Euler'
     currentSize = 'Portrait (832x1216)'
     isDrawing = false;
@@ -354,6 +357,8 @@ async function run(headless, email, password) {
 
   await page.setDefaultNavigationTimeout(0);
   await page.setDefaultTimeout(0);
+
+  await registerDialogListener(page);
 
   const filePath = 'localStorageData.json';
 
@@ -444,4 +449,14 @@ function getSizeFromID(sizeID: string): string | undefined {
     return sizes[index - 1];
   }
   return undefined;
+}
+
+async function registerDialogListener(page) {
+  // 注册对话框事件监听器
+  page.on('dialog', async (dialog) => {
+    // console.log(`对话框消息: ${dialog.message()}`);
+
+    // 点击确认按钮
+    await dialog.accept();
+  });
 }
